@@ -1106,8 +1106,8 @@
       const textarea = document.getElementById('userAnswer');
       if (textarea) {
         textarea.addEventListener('keydown', function(e) {
-          if (e.isComposing) return; // Ignore Korean IME composition Enter
-          if (e.key === 'Enter' && !e.shiftKey) {
+          // e.keyCode === 13 matches actual Enter. During Korean IME composition, Enter yields keyCode 229 which we ignore so Chrome can commit the text.
+          if (e.keyCode === 13 && !e.shiftKey) {
             e.preventDefault();
             const val = textarea.value.trim();
             if (!val) {
