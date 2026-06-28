@@ -1121,8 +1121,10 @@
       nextRound();
     }
 
-    async function nextRound() {
-      state.currentRound++;
+    async function nextRound(isRetry = false) {
+      if (!isRetry) {
+        state.currentRound++;
+      }
       document.getElementById('roundCounter').textContent = `라운드 ${state.currentRound}`;
       updateAvgScore();
 
@@ -1135,7 +1137,32 @@
       showScreen('play');
 
       try {
-        const category = JUNWON.categories[Math.floor(Math.random() * JUNWON.categories.length)];
+        let category;
+        const maxAttempts = 10;
+        let attempts = 0;
+        
+        // Pick category based on weights (Game has 15% chance, others have 28.3% each)
+        const weights = { game: 0.15, work: 0.283, cursing: 0.283, whining: 0.284 };
+        
+        function getWeightedCategory() {
+          const r = Math.random();
+          let sum = 0;
+          for (const cat of JUNWON.categories) {
+            const w = weights[cat.id] || 0.25;
+            sum += w;
+            if (r <= sum) return cat;
+          }
+          return JUNWON.categories[JUNWON.categories.length - 1];
+        }
+
+        do {
+          category = getWeightedCategory();
+          attempts++;
+        } while (
+          state.currentScenario && 
+          category.id === state.currentScenario.category && 
+          attempts < maxAttempts
+        );
 
         const response = await fetch('/api/generate', {
           method: 'POST',
@@ -1176,7 +1203,7 @@
         document.getElementById('scenarioLoading').innerHTML = `
           <div style="color: var(--accent-red); font-family: var(--font-cartoon);">
             ❌ 오류: ${escapeHtml(err.message)}<br><br>
-            <button class="btn btn-secondary btn-small" onclick="nextRound()">다시 시도</button>
+            <button class="btn btn-secondary btn-small" onclick="nextRound(true)">다시 시도</button>
           </div>
         `;
       }
