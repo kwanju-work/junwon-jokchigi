@@ -843,6 +843,15 @@
         </p>
       </div>
 
+      <!-- Name Input Box -->
+      <div class="card" style="margin-top: 20px; text-align: left;">
+        <label class="input-label" style="display: block; margin-bottom: 8px;">✍️ 훈육자 이름 (당신의 실제 이름/닉네임)</label>
+        <input type="text" id="playerNameInput" class="input-area" style="min-height: 48px; padding: 12px; font-size: 1.1rem;" placeholder="이름을 입력하세요 (예: 관주)">
+        <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 8px;">
+          * 입력하시면 준원이가 대사 중에 사용자님의 이름을 부르며 말을 걸어 훨씬 더 몰입감이 높아집니다!
+        </p>
+      </div>
+
       <div class="btn-group">
         <button class="btn btn-primary" onclick="startGame()">🦶 족치기 시작!</button>
       </div>
@@ -997,6 +1006,7 @@
     // ==================== STATE ====================
     const state = {
       apiKey: localStorage.getItem('junwon_api_key') || '',
+      playerName: localStorage.getItem('junwon_player_name') || '친구',
       currentRound: 0,
       rounds: [], // { scenario, answer, result }
       kakaoData: null,
@@ -1080,6 +1090,7 @@
     // ==================== INIT ====================
     async function init() {
       setupDragDrop();
+      document.getElementById('playerNameInput').value = state.playerName;
       // Test if backend is reachable
       const statusBtn = document.getElementById('apiKeyStatusBtn');
       try {
@@ -1101,6 +1112,9 @@
     }
 
     function startGame() {
+      const pName = document.getElementById('playerNameInput').value.trim();
+      state.playerName = pName || '친구';
+      localStorage.setItem('junwon_player_name', state.playerName);
       state.currentRound = 0;
       state.rounds = [];
       showScreen('play');
@@ -1128,7 +1142,8 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             category: category.id,
-            kakaoSamples: state.kakaoExtraSamples
+            kakaoSamples: state.kakaoExtraSamples,
+            playerName: state.playerName
           })
         });
 
@@ -1187,7 +1202,8 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             scenario: state.currentScenario,
-            userAnswer: answer
+            userAnswer: answer,
+            playerName: state.playerName
           })
         });
 

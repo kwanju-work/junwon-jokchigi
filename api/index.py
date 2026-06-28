@@ -194,6 +194,7 @@ async def call_gemini(system_prompt: str, user_message: str, response_mime_type:
 async def generate_scenario(body: dict = Body(...)):
     category_id = body.get("category")
     kakao_samples = body.get("kakaoSamples", [])
+    player_name = body.get("playerName", "친구")
     
     # Select category
     if category_id:
@@ -216,10 +217,14 @@ async def generate_scenario(body: dict = Body(...)):
 카테고리: {category['emoji']} {category['name']}
 설명: {category['description']}
 트리거 예시: {', '.join(category['triggers'])}
+훈육자(사용자) 이름: {player_name}
 
 참고 대사 예시:
 {chr(10).join(f'- "{d}"' for d in category['examples'])}
 {extra_context}
+
+## 중요 규칙 (사용자 이름 반영):
+- 사용자의 이름은 "{player_name}"이야. 준원이가 대사나 톡에서 사용자를 직접 호명할 때 친근하게 "{player_name}"(또는 "{player_name}야", "야", "너")이라고 부르는 대사를 대화창에 최소 1번 이상 포함시켜줘.
 
 아래 JSON 형식으로 응답해. JSON만, 다른 텍스트 없이:
 {{
@@ -256,6 +261,7 @@ async def generate_scenario(body: dict = Body(...)):
 async def evaluate_answer(body: dict = Body(...)):
     scenario = body.get("scenario")
     user_answer = body.get("userAnswer")
+    player_name = body.get("playerName", "친구")
     
     if not scenario or not user_answer:
         raise HTTPException(status_code=400, detail="Missing scenario or userAnswer in request body")
@@ -264,11 +270,12 @@ async def evaluate_answer(body: dict = Body(...)):
 상황: {scenario.get('situation', '')}
 준원이 대사: {chr(10).join(f'{i+1}. "{d}"' for i, d in enumerate(scenario.get('dialogue', [])))}
 카테고리: {scenario.get('categoryEmoji', '')} {scenario.get('categoryName', '')}
+사용자(훈육자) 이름: {player_name}
 
 ## 사용자의 대응
 "{user_answer}"
 
-위 기준에 따라 사용자의 대응을 평가해줘. JSON으로만 응답해."""
+위 시나리오 상황에서 사용자 {player_name}가 취한 대응을 기준에 따라 평가해줘. JSON으로만 응답해."""
 
     result_text = await call_gemini(JUNWON_PROFILE["evaluationPrompt"], user_prompt, response_mime_type="application/json")
     
