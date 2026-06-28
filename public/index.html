@@ -1087,10 +1087,29 @@
       ]
     };
 
-    // ==================== INIT ====================
     async function init() {
       setupDragDrop();
       document.getElementById('playerNameInput').value = state.playerName;
+      
+      // Enter to submit (with confirmation), Shift+Enter to newline
+      const textarea = document.getElementById('userAnswer');
+      if (textarea) {
+        textarea.addEventListener('keydown', function(e) {
+          if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            const val = textarea.value.trim();
+            if (!val) {
+              textarea.style.borderColor = 'var(--accent-red)';
+              setTimeout(() => { textarea.style.borderColor = ''; }, 1500);
+              return;
+            }
+            if (confirm("준원이를 입력한 대로 혼내볼까요?")) {
+              submitAnswer();
+            }
+          }
+        });
+      }
+
       // Test if backend is reachable
       const statusBtn = document.getElementById('apiKeyStatusBtn');
       try {
