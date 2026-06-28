@@ -160,7 +160,7 @@ async def call_gemini(system_prompt: str, user_message: str, response_mime_type:
         }],
         "generationConfig": {
             "temperature": 1.0,
-            "maxOutputTokens": 1024,
+            "maxOutputTokens": 8192,
             "responseMimeType": response_mime_type,
         }
     }
