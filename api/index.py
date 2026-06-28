@@ -149,7 +149,7 @@ async def call_gemini(system_prompt: str, user_message: str) -> str:
             detail="서버에 GEMINI_API_KEY가 설정되지 않았습니다. .env 파일을 확인하거나 환경 변수를 설정해주세요."
         )
     
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}"
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={GEMINI_API_KEY}"
     payload = {
         "system_instruction": {
             "parts": [{"text": system_prompt}]
