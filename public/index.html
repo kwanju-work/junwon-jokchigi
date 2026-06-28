@@ -1197,7 +1197,10 @@
 
           if (!response.ok) {
             const err = await response.json().catch(() => ({}));
-            throw new Error(err.detail || `HTTP error ${response.status}`);
+            const errMsg = err.detail || `HTTP error ${response.status}`;
+            const error = new Error(errMsg);
+            error.status = response.status;
+            throw error;
           }
 
           const parsed = await response.json();
@@ -1222,7 +1225,8 @@
           break; // Success!
 
         } catch (err) {
-          if (attempt >= maxAttempts - 1) {
+          const isRetryable = err.status === 429 || err.status === 503 || err.status === 502 || !err.status || err.message.includes('Failed to fetch');
+          if (!isRetryable || attempt >= maxAttempts - 1) {
             document.getElementById('scenarioLoading').innerHTML = `
               <div style="color: var(--accent-red); font-family: var(--font-cartoon);">
                 ❌ 오류: ${escapeHtml(err.message)}<br><br>
@@ -1281,7 +1285,10 @@
 
           if (!response.ok) {
             const err = await response.json().catch(() => ({}));
-            throw new Error(err.detail || `HTTP error ${response.status}`);
+            const errMsg = err.detail || `HTTP error ${response.status}`;
+            const error = new Error(errMsg);
+            error.status = response.status;
+            throw error;
           }
 
           const evaluation = await response.json();
@@ -1298,7 +1305,8 @@
           break; // Success!
 
         } catch (err) {
-          if (attempt >= maxAttempts - 1) {
+          const isRetryable = err.status === 429 || err.status === 503 || err.status === 502 || !err.status || err.message.includes('Failed to fetch');
+          if (!isRetryable || attempt >= maxAttempts - 1) {
             alert(`평가 오류: ${err.message}`);
             break;
           }
