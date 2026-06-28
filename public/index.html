@@ -1145,9 +1145,13 @@
 
     async function nextRound(isRetry = false) {
       if (!isRetry) {
+        if (state.currentRound >= 5) {
+          showReport();
+          return;
+        }
         state.currentRound++;
       }
-      document.getElementById('roundCounter').textContent = `라운드 ${state.currentRound}`;
+      document.getElementById('roundCounter').textContent = `라운드 ${state.currentRound} / 5`;
       updateAvgScore();
 
       // Show loading, hide content and result
@@ -1379,6 +1383,29 @@
       document.getElementById('tipText').textContent = evaluation.tip || '';
 
       updateAvgScore();
+
+      // Adjust buttons for the 5th round limit
+      const nextBtn = document.querySelector("#phase-result .btn-primary");
+      const reportBtn = document.querySelector("#phase-result .btn-secondary");
+      
+      if (state.currentRound >= 5) {
+        if (nextBtn) {
+          nextBtn.textContent = "📊 참교육 완료 (결과 보기)";
+          nextBtn.onclick = function() { showReport(); };
+        }
+        if (reportBtn) {
+          reportBtn.style.display = "none";
+        }
+      } else {
+        if (nextBtn) {
+          nextBtn.textContent = "다음 라운드 ➡️";
+          nextBtn.onclick = function() { nextRound(); };
+        }
+        if (reportBtn) {
+          reportBtn.style.display = "inline-block";
+        }
+      }
+
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
