@@ -910,7 +910,10 @@
           </div>
 
           <div style="margin-top: 24px;">
-            <label class="input-label">✍️ 준원이를 어떻게 혼내시겠습니까?</label>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <label class="input-label" style="margin-bottom: 0;">✍️ 준원이를 어떻게 혼내시겠습니까?</label>
+              <span style="font-size: 0.75rem; color: var(--text-muted); font-family: var(--font-cartoon);">* 줄바꿈: Shift+Enter / 전송: Enter</span>
+            </div>
             <textarea class="input-area" id="userAnswer" placeholder="준원이에 대한 훈육/대응 방법을 작성해주세요...&#10;&#10;예: 야 박준원 게임 그만하고 일이나 해 이 푸씨야"></textarea>
             <div class="btn-group" style="justify-content: flex-end; margin-top: 12px;">
               <button class="btn btn-secondary btn-small" onclick="skipScenario()">⏭️ 스킵</button>
