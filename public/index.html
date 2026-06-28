@@ -1,0 +1,1332 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>준원이 족치기 🦶</title>
+  <meta name="description" content="준원이의 문제 행동을 평가하고 가이드해주는 웹 서비스. AI가 시나리오를 생성하고 당신의 훈육 실력을 평가합니다!">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Jua&family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
+  <style>
+    /* ====== RESET & BASE ====== */
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg-dark: #0d0a1a;
+      --bg-purple: #1a0a2e;
+      --bg-card: #1e1535;
+      --border-color: #3d2a6e;
+      --accent-purple: #7c3aed;
+      --accent-red: #dc2626;
+      --accent-pink: #ff2d95;
+      --accent-green: #39ff14;
+      --accent-yellow: #fff200;
+      --accent-blue: #4da6ff;
+      --accent-orange: #ff8c00;
+      --text-primary: #f0e6ff;
+      --text-secondary: #a78bdb;
+      --text-muted: #6b5b8a;
+      --font-heading: 'Black Han Sans', sans-serif;
+      --font-cartoon: 'Jua', sans-serif;
+      --font-body: 'Noto Sans KR', sans-serif;
+      --border-thick: 3px solid;
+      --shadow-comic: 4px 4px 0px rgba(0,0,0,0.8);
+      --shadow-glow-purple: 0 0 20px rgba(124, 58, 237, 0.5);
+      --shadow-glow-red: 0 0 20px rgba(220, 38, 38, 0.5);
+      --shadow-glow-green: 0 0 20px rgba(57, 255, 20, 0.5);
+      --radius-card: 16px;
+      --radius-btn: 12px;
+    }
+
+    body {
+      font-family: var(--font-body);
+      background: var(--bg-dark);
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Comic dot pattern background */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-image: radial-gradient(circle, rgba(124,58,237,0.08) 1px, transparent 1px);
+      background-size: 20px 20px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ====== ANIMATIONS ====== */
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+      20%, 40%, 60%, 80% { transform: translateX(5px); }
+    }
+
+    @keyframes explode {
+      0% { transform: scale(0.3); opacity: 0; }
+      50% { transform: scale(1.15); }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-12px); }
+    }
+
+    @keyframes glow {
+      0%, 100% { filter: drop-shadow(0 0 8px rgba(124,58,237,0.6)); }
+      50% { filter: drop-shadow(0 0 20px rgba(255,45,149,0.8)); }
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(40px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      40% { transform: translateY(-20px); }
+      60% { transform: translateY(-10px); }
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+
+    @keyframes scoreCount {
+      from { width: 0%; }
+    }
+
+    @keyframes typeWriter {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes gradientMove {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    @keyframes spinKick {
+      0% { transform: rotate(0deg); }
+      25% { transform: rotate(-15deg); }
+      75% { transform: rotate(15deg); }
+      100% { transform: rotate(0deg); }
+    }
+
+    /* ====== LAYOUT ====== */
+    .app-container {
+      position: relative;
+      z-index: 1;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      min-height: 100vh;
+    }
+
+    /* ====== MAIN SCREEN ====== */
+    .screen { display: none; }
+    .screen.active { display: block; animation: slideUp 0.5s ease-out; }
+
+    /* ====== TITLE ====== */
+    .main-title {
+      font-family: var(--font-heading);
+      font-size: clamp(2.8rem, 8vw, 5rem);
+      text-align: center;
+      background: linear-gradient(135deg, var(--accent-pink), var(--accent-purple), var(--accent-red));
+      background-size: 200% 200%;
+      animation: gradientMove 3s ease infinite;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      filter: drop-shadow(3px 3px 0px rgba(0,0,0,0.9));
+      margin-bottom: 8px;
+      line-height: 1.2;
+    }
+
+    .main-subtitle {
+      font-family: var(--font-cartoon);
+      font-size: clamp(1rem, 3vw, 1.4rem);
+      text-align: center;
+      color: var(--text-secondary);
+      margin-bottom: 40px;
+    }
+
+    /* ====== CHARACTER ====== */
+    .character-container {
+      text-align: center;
+      margin: 30px 0;
+      animation: float 3s ease-in-out infinite;
+    }
+
+    .character-img {
+      width: clamp(200px, 50vw, 320px);
+      height: auto;
+      border-radius: 20px;
+      border: 4px solid var(--accent-purple);
+      box-shadow: var(--shadow-comic), var(--shadow-glow-purple);
+      animation: glow 3s ease-in-out infinite;
+      transition: transform 0.3s;
+    }
+
+    .character-img:hover {
+      transform: scale(1.05) rotate(-2deg);
+      animation: shake 0.5s;
+    }
+
+    .character-desc {
+      font-family: var(--font-cartoon);
+      font-size: 1.1rem;
+      color: var(--accent-yellow);
+      margin-top: 16px;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+    }
+
+    /* ====== BUTTONS ====== */
+    .btn {
+      font-family: var(--font-cartoon);
+      font-size: 1.2rem;
+      padding: 16px 36px;
+      border: var(--border-thick) var(--border-color);
+      border-radius: var(--radius-btn);
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink));
+      color: white;
+      border-color: var(--accent-pink);
+      box-shadow: var(--shadow-comic), var(--shadow-glow-purple);
+      font-size: 1.4rem;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-3px) scale(1.03);
+      box-shadow: 6px 6px 0px rgba(0,0,0,0.8), 0 0 30px rgba(255,45,149,0.6);
+    }
+
+    .btn-primary:active {
+      transform: translateY(2px);
+      box-shadow: 2px 2px 0px rgba(0,0,0,0.8);
+    }
+
+    .btn-secondary {
+      background: var(--bg-card);
+      color: var(--text-primary);
+      border-color: var(--border-color);
+      box-shadow: var(--shadow-comic);
+    }
+
+    .btn-secondary:hover {
+      background: var(--bg-purple);
+      border-color: var(--accent-purple);
+      transform: translateY(-2px);
+    }
+
+    .btn-danger {
+      background: linear-gradient(135deg, var(--accent-red), #991b1b);
+      color: white;
+      border-color: var(--accent-red);
+      box-shadow: var(--shadow-comic), var(--shadow-glow-red);
+    }
+
+    .btn-small {
+      font-size: 0.95rem;
+      padding: 10px 20px;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin: 24px 0;
+    }
+
+    /* ====== CARDS ====== */
+    .card {
+      background: var(--bg-card);
+      border: var(--border-thick) var(--border-color);
+      border-radius: var(--radius-card);
+      padding: 24px;
+      box-shadow: var(--shadow-comic);
+      margin-bottom: 20px;
+      position: relative;
+    }
+
+    .card-glow {
+      box-shadow: var(--shadow-comic), var(--shadow-glow-purple);
+    }
+
+    /* ====== SPEECH BUBBLE ====== */
+    .speech-bubble {
+      position: relative;
+      background: var(--bg-purple);
+      border: 3px solid var(--accent-pink);
+      border-radius: 20px;
+      padding: 20px 24px;
+      margin: 16px 0;
+      margin-left: 20px;
+      font-family: var(--font-cartoon);
+      font-size: 1.1rem;
+      line-height: 1.6;
+      color: var(--text-primary);
+      box-shadow: var(--shadow-comic);
+      animation: explode 0.4s ease-out;
+    }
+
+    .speech-bubble::before {
+      content: '';
+      position: absolute;
+      left: -16px;
+      top: 20px;
+      width: 0;
+      height: 0;
+      border-right: 16px solid var(--accent-pink);
+      border-top: 10px solid transparent;
+      border-bottom: 10px solid transparent;
+    }
+
+    .speech-bubble::after {
+      content: '';
+      position: absolute;
+      left: -11px;
+      top: 22px;
+      width: 0;
+      height: 0;
+      border-right: 14px solid var(--bg-purple);
+      border-top: 8px solid transparent;
+      border-bottom: 8px solid transparent;
+    }
+
+    .speech-bubble .dialogue-line {
+      animation: typeWriter 0.3s ease-out backwards;
+      margin-bottom: 4px;
+    }
+
+    .speech-bubble .dialogue-line:nth-child(2) { animation-delay: 0.1s; }
+    .speech-bubble .dialogue-line:nth-child(3) { animation-delay: 0.2s; }
+    .speech-bubble .dialogue-line:nth-child(4) { animation-delay: 0.3s; }
+    .speech-bubble .dialogue-line:nth-child(5) { animation-delay: 0.4s; }
+    .speech-bubble .dialogue-line:nth-child(6) { animation-delay: 0.5s; }
+
+    /* ====== BADGES ====== */
+    .badge {
+      display: inline-block;
+      font-family: var(--font-cartoon);
+      font-size: 0.9rem;
+      padding: 6px 14px;
+      border-radius: 20px;
+      border: 2px solid;
+      font-weight: 700;
+      text-shadow: 1px 1px 0 rgba(0,0,0,0.5);
+    }
+
+    .badge-game { background: rgba(57,255,20,0.15); border-color: var(--accent-green); color: var(--accent-green); }
+    .badge-work { background: rgba(255,140,0,0.15); border-color: var(--accent-orange); color: var(--accent-orange); }
+    .badge-cursing { background: rgba(255,45,149,0.15); border-color: var(--accent-pink); color: var(--accent-pink); }
+    .badge-whining { background: rgba(77,166,255,0.15); border-color: var(--accent-blue); color: var(--accent-blue); }
+
+    /* ====== SITUATION BOX ====== */
+    .situation-box {
+      background: rgba(124,58,237,0.1);
+      border: 2px dashed var(--accent-purple);
+      border-radius: 12px;
+      padding: 16px 20px;
+      margin: 12px 0;
+      font-size: 1rem;
+      line-height: 1.7;
+      color: var(--text-secondary);
+    }
+
+    .situation-box::before {
+      content: '📋 상황';
+      display: block;
+      font-family: var(--font-cartoon);
+      font-size: 0.85rem;
+      color: var(--accent-purple);
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+
+    /* ====== INPUT AREA ====== */
+    .input-area {
+      width: 100%;
+      min-height: 120px;
+      background: var(--bg-dark);
+      border: 3px solid var(--border-color);
+      border-radius: 12px;
+      padding: 16px;
+      color: var(--text-primary);
+      font-family: var(--font-body);
+      font-size: 1rem;
+      resize: vertical;
+      transition: border-color 0.3s;
+      outline: none;
+    }
+
+    .input-area:focus {
+      border-color: var(--accent-purple);
+      box-shadow: 0 0 15px rgba(124,58,237,0.3);
+    }
+
+    .input-area::placeholder {
+      color: var(--text-muted);
+    }
+
+    .input-label {
+      font-family: var(--font-cartoon);
+      font-size: 1.1rem;
+      color: var(--accent-yellow);
+      margin-bottom: 10px;
+      display: block;
+    }
+
+    /* ====== SCORE DISPLAY ====== */
+    .score-section {
+      text-align: center;
+      padding: 20px 0;
+    }
+
+    .score-number {
+      font-family: var(--font-heading);
+      font-size: clamp(4rem, 15vw, 7rem);
+      animation: explode 0.6s ease-out;
+    }
+
+    .score-label {
+      font-family: var(--font-cartoon);
+      font-size: 1rem;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    .grade-badge {
+      display: inline-block;
+      font-family: var(--font-heading);
+      font-size: 3rem;
+      width: 80px;
+      height: 80px;
+      line-height: 80px;
+      text-align: center;
+      border-radius: 50%;
+      border: 4px solid;
+      box-shadow: var(--shadow-comic);
+      animation: bounce 0.8s ease-out;
+      margin: 12px 0;
+    }
+
+    .grade-S { background: linear-gradient(135deg, #ffd700, #ff8c00); border-color: #ffd700; color: #1a0a2e; text-shadow: 0 0 10px rgba(255,215,0,0.8); }
+    .grade-A { background: linear-gradient(135deg, var(--accent-green), #00cc44); border-color: var(--accent-green); color: #0a1a0a; }
+    .grade-B { background: linear-gradient(135deg, var(--accent-blue), #0066cc); border-color: var(--accent-blue); color: white; }
+    .grade-C { background: linear-gradient(135deg, var(--accent-orange), #cc6600); border-color: var(--accent-orange); color: white; }
+    .grade-D { background: linear-gradient(135deg, var(--accent-pink), #cc0066); border-color: var(--accent-pink); color: white; }
+    .grade-F { background: linear-gradient(135deg, var(--accent-red), #660000); border-color: var(--accent-red); color: white; animation: shake 0.5s; }
+
+    .score-gauge-container {
+      width: 100%;
+      height: 24px;
+      background: var(--bg-dark);
+      border: 2px solid var(--border-color);
+      border-radius: 12px;
+      overflow: hidden;
+      margin: 16px 0;
+    }
+
+    .score-gauge-fill {
+      height: 100%;
+      border-radius: 10px;
+      transition: width 1.5s ease-out;
+      animation: scoreCount 1.5s ease-out;
+    }
+
+    /* ====== FEEDBACK SECTIONS ====== */
+    .feedback-item {
+      padding: 12px 16px;
+      border-left: 4px solid;
+      margin: 12px 0;
+      border-radius: 0 8px 8px 0;
+      background: rgba(0,0,0,0.2);
+    }
+
+    .feedback-good { border-color: var(--accent-green); }
+    .feedback-improve { border-color: var(--accent-orange); }
+    .feedback-tip { border-color: var(--accent-yellow); }
+
+    .feedback-label {
+      font-family: var(--font-cartoon);
+      font-size: 0.85rem;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .feedback-good .feedback-label { color: var(--accent-green); }
+    .feedback-improve .feedback-label { color: var(--accent-orange); }
+    .feedback-tip .feedback-label { color: var(--accent-yellow); }
+
+    /* ====== TITLE LABEL ====== */
+    .title-badge {
+      font-family: var(--font-cartoon);
+      font-size: 1.3rem;
+      color: var(--accent-yellow);
+      text-shadow: 2px 2px 0 rgba(0,0,0,0.5);
+      margin: 8px 0;
+    }
+
+    /* ====== MODAL ====== */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.85);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal-overlay.active { display: flex; }
+
+    .modal {
+      background: var(--bg-card);
+      border: 3px solid var(--accent-purple);
+      border-radius: var(--radius-card);
+      padding: 32px;
+      max-width: 500px;
+      width: 100%;
+      box-shadow: 0 0 40px rgba(124,58,237,0.4);
+      animation: explode 0.3s ease-out;
+    }
+
+    .modal h2 {
+      font-family: var(--font-heading);
+      font-size: 1.8rem;
+      margin-bottom: 16px;
+      color: var(--accent-pink);
+    }
+
+    .modal p {
+      color: var(--text-secondary);
+      margin-bottom: 16px;
+      line-height: 1.6;
+    }
+
+    .modal input[type="password"],
+    .modal input[type="text"] {
+      width: 100%;
+      padding: 14px 16px;
+      background: var(--bg-dark);
+      border: 2px solid var(--border-color);
+      border-radius: 8px;
+      color: var(--text-primary);
+      font-size: 1rem;
+      font-family: var(--font-body);
+      outline: none;
+      margin-bottom: 16px;
+      transition: border-color 0.3s;
+    }
+
+    .modal input:focus {
+      border-color: var(--accent-purple);
+      box-shadow: 0 0 10px rgba(124,58,237,0.3);
+    }
+
+    .modal .error-text {
+      color: var(--accent-red);
+      font-size: 0.9rem;
+      margin-top: -10px;
+      margin-bottom: 12px;
+      display: none;
+    }
+
+    /* ====== FILE DROP ZONE ====== */
+    .file-drop-zone {
+      border: 3px dashed var(--border-color);
+      border-radius: 16px;
+      padding: 32px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s;
+      background: rgba(124,58,237,0.05);
+    }
+
+    .file-drop-zone:hover,
+    .file-drop-zone.dragover {
+      border-color: var(--accent-purple);
+      background: rgba(124,58,237,0.1);
+      transform: scale(1.02);
+    }
+
+    .file-drop-zone .drop-icon {
+      font-size: 3rem;
+      margin-bottom: 12px;
+    }
+
+    .file-drop-zone .drop-text {
+      font-family: var(--font-cartoon);
+      font-size: 1.1rem;
+      color: var(--text-secondary);
+    }
+
+    .file-drop-zone .drop-hint {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-top: 8px;
+    }
+
+    /* ====== LOADING ====== */
+    .loading-container {
+      text-align: center;
+      padding: 40px 0;
+    }
+
+    .loading-foot {
+      font-size: 4rem;
+      animation: spinKick 0.8s ease-in-out infinite;
+      display: inline-block;
+    }
+
+    .loading-text {
+      font-family: var(--font-cartoon);
+      font-size: 1.2rem;
+      color: var(--text-secondary);
+      margin-top: 16px;
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    /* ====== ROUND COUNTER ====== */
+    .round-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .round-counter {
+      font-family: var(--font-cartoon);
+      font-size: 1.3rem;
+      color: var(--accent-yellow);
+    }
+
+    .avg-score {
+      font-family: var(--font-cartoon);
+      font-size: 1rem;
+      color: var(--text-secondary);
+    }
+
+    /* ====== REPORT ====== */
+    .report-header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .report-title {
+      font-family: var(--font-heading);
+      font-size: 2.5rem;
+      background: linear-gradient(135deg, var(--accent-yellow), var(--accent-orange));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .report-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 12px;
+      margin: 20px 0;
+    }
+
+    .stat-box {
+      background: var(--bg-dark);
+      border: 2px solid var(--border-color);
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+    }
+
+    .stat-value {
+      font-family: var(--font-heading);
+      font-size: 2rem;
+      color: var(--accent-purple);
+    }
+
+    .stat-label {
+      font-family: var(--font-cartoon);
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .round-history {
+      max-height: 300px;
+      overflow-y: auto;
+      margin: 16px 0;
+    }
+
+    .round-history-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 12px;
+      border-bottom: 1px solid rgba(61,42,110,0.5);
+    }
+
+    .round-history-item:last-child { border-bottom: none; }
+
+    /* ====== API KEY DISPLAY ====== */
+    .api-key-status {
+      position: fixed;
+      top: 12px;
+      right: 12px;
+      z-index: 50;
+    }
+
+    .api-key-btn {
+      font-family: var(--font-cartoon);
+      font-size: 0.8rem;
+      padding: 6px 12px;
+      background: var(--bg-card);
+      border: 2px solid var(--border-color);
+      border-radius: 20px;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .api-key-btn:hover {
+      border-color: var(--accent-purple);
+      color: var(--text-primary);
+    }
+
+    .api-key-btn.connected {
+      border-color: var(--accent-green);
+      color: var(--accent-green);
+    }
+
+    /* ====== CATEGORY SELECTOR ====== */
+    .category-selector {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin: 16px 0;
+    }
+
+    .category-btn {
+      font-family: var(--font-cartoon);
+      font-size: 0.95rem;
+      padding: 8px 16px;
+      border: 2px solid var(--border-color);
+      border-radius: 20px;
+      background: var(--bg-dark);
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .category-btn:hover { transform: translateY(-2px); }
+    .category-btn.active { border-color: var(--accent-purple); color: var(--accent-purple); background: rgba(124,58,237,0.1); }
+
+    /* ====== KAKAO UPLOAD STATUS ====== */
+    .kakao-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      background: rgba(57,255,20,0.1);
+      border: 2px solid var(--accent-green);
+      border-radius: 10px;
+      margin-top: 12px;
+      font-family: var(--font-cartoon);
+      font-size: 0.95rem;
+      color: var(--accent-green);
+    }
+
+    /* ====== RESPONSIVE ====== */
+    @media (max-width: 768px) {
+      .app-container { padding: 12px; }
+      .card { padding: 16px; }
+      .modal { padding: 20px; }
+      .speech-bubble { margin-left: 12px; padding: 14px 16px; }
+      .btn-primary { font-size: 1.2rem; padding: 14px 28px; }
+      .report-stats { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    /* ====== SCROLLBAR ====== */
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: var(--bg-dark); }
+    ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--accent-purple); }
+
+    /* ====== FOOTER ====== */
+    .footer {
+      text-align: center;
+      padding: 30px 0 10px;
+      color: var(--text-muted);
+      font-size: 0.8rem;
+    }
+
+    /* ====== DECORATIVE ====== */
+    .action-lines {
+      position: absolute;
+      top: -20px;
+      right: -20px;
+      font-size: 3rem;
+      opacity: 0.1;
+      transform: rotate(15deg);
+      pointer-events: none;
+    }
+
+    .section-divider {
+      text-align: center;
+      margin: 24px 0;
+      color: var(--text-muted);
+      font-size: 1.5rem;
+      letter-spacing: 8px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- API Key Status -->
+  <div class="api-key-status">
+    <button class="api-key-btn" id="apiKeyStatusBtn" onclick="showApiKeyModal()">🔑 API 키 설정</button>
+  </div>
+
+  <div class="app-container">
+
+    <!-- ===== SCREEN: MAIN ===== -->
+    <div class="screen active" id="screen-main">
+      <div style="padding-top: 40px;">
+        <h1 class="main-title">준원이 족치기</h1>
+        <p class="main-subtitle">🦶 징징대는 준원이를 어떻게 혼내야 할까?</p>
+      </div>
+
+      <div class="character-container">
+        <img src="junwon.jpg" alt="준원이 캐릭터" class="character-img" id="characterImg"
+             onerror="this.style.display='none'; document.getElementById('characterFallback').style.display='block';">
+        <div id="characterFallback" style="display:none; font-size: 8rem; animation: float 3s ease-in-out infinite;">😤</div>
+        <p class="character-desc">
+          "야야 ㅋㅋㅋㅋㅋ 이거 ㅈㄴ 웃기네 ㅋㅋㅋ"
+        </p>
+      </div>
+
+      <div class="card" style="text-align: center;">
+        <span class="action-lines">💥</span>
+        <h2 style="font-family: var(--font-cartoon); font-size: 1.3rem; margin-bottom: 12px; color: var(--accent-yellow);">
+          🎯 준원이 특징
+        </h2>
+        <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 16px;">
+          <span class="badge badge-game">🎮 게임 분노</span>
+          <span class="badge badge-work">😤 직장 불만</span>
+          <span class="badge badge-cursing">🤬 욕설 배틀</span>
+          <span class="badge badge-whining">😢 징징/투정</span>
+        </div>
+        <p style="color: var(--text-secondary); font-size: 0.95rem; line-height: 1.6;">
+          AI가 준원이의 문제 행동을 랜덤으로 생성합니다.<br>
+          당신은 어떻게 혼낼지 답변하고, AI가 점수를 매깁니다!
+        </p>
+      </div>
+
+      <div class="btn-group">
+        <button class="btn btn-primary" onclick="startGame()">🦶 족치기 시작!</button>
+      </div>
+
+      <!-- Kakao Upload Section -->
+      <div class="card" style="margin-top: 20px;">
+        <h3 style="font-family: var(--font-cartoon); font-size: 1.1rem; margin-bottom: 12px; color: var(--text-secondary);">
+          📂 카카오톡 대화 업로드 (선택)
+        </h3>
+        <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 12px;">
+          준원이와의 카톡 대화를 업로드하면 더 리얼한 시나리오가 생성됩니다!<br>
+          카톡 → 채팅방 → 메뉴(≡) → 대화 내보내기 → .txt 파일
+        </p>
+        <div class="file-drop-zone" id="fileDropZone" onclick="document.getElementById('kakaoFileInput').click()">
+          <div class="drop-icon">📄</div>
+          <div class="drop-text">카카오톡 .txt 파일을 드래그하거나 클릭</div>
+          <div class="drop-hint">대화 내보내기 파일만 지원됩니다</div>
+        </div>
+        <input type="file" id="kakaoFileInput" accept=".txt" style="display:none;" onchange="handleKakaoFile(event)">
+        <div id="kakaoUploadStatus"></div>
+      </div>
+
+      <div class="footer">
+        <p>준원이 족치기 v1.0 | Powered by Google Gemini AI ✨</p>
+      </div>
+    </div>
+
+    <!-- ===== SCREEN: PLAY ===== -->
+    <div class="screen" id="screen-play">
+      <div class="round-header">
+        <span class="round-counter" id="roundCounter">라운드 1</span>
+        <span class="avg-score" id="avgScoreDisplay">평균: --점</span>
+      </div>
+
+      <!-- Phase 1: Scenario -->
+      <div id="phase-scenario">
+        <div class="loading-container" id="scenarioLoading">
+          <div class="loading-foot">🦶</div>
+          <div class="loading-text">준원이가 뭔가 하고 있어요...</div>
+        </div>
+
+        <div id="scenarioContent" style="display:none;">
+          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+            <span id="scenarioBadge" class="badge"></span>
+            <span style="font-family: var(--font-cartoon); color: var(--text-muted); font-size: 0.9rem;">준원이의 행동</span>
+          </div>
+
+          <div class="situation-box" id="situationText"></div>
+
+          <div style="display: flex; align-items: flex-start; gap: 12px; margin-top: 16px;">
+            <div style="font-size: 2.5rem; flex-shrink: 0; margin-top: 8px;">😤</div>
+            <div class="speech-bubble" id="dialogueBubble"></div>
+          </div>
+
+          <div style="margin-top: 24px;">
+            <label class="input-label">✍️ 준원이를 어떻게 혼내시겠습니까?</label>
+            <textarea class="input-area" id="userAnswer" placeholder="준원이에 대한 훈육/대응 방법을 작성해주세요...&#10;&#10;예: 야 박준원 게임 그만하고 일이나 해 이 푸씨야"></textarea>
+            <div class="btn-group" style="justify-content: flex-end; margin-top: 12px;">
+              <button class="btn btn-secondary btn-small" onclick="skipScenario()">⏭️ 스킵</button>
+              <button class="btn btn-primary" onclick="submitAnswer()" id="submitBtn">🦶 족치기!</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Phase 2: Result -->
+      <div id="phase-result" style="display: none;">
+        <div class="card card-glow">
+          <div class="score-section">
+            <div class="score-label">족치기 점수</div>
+            <div class="score-number" id="scoreDisplay">0</div>
+            <div class="score-gauge-container">
+              <div class="score-gauge-fill" id="scoreGauge" style="width: 0%"></div>
+            </div>
+            <div id="gradeDisplay"></div>
+            <div class="title-badge" id="titleDisplay"></div>
+          </div>
+
+          <div style="margin-top: 20px;">
+            <p id="feedbackText" style="font-size: 1.05rem; line-height: 1.7; text-align: center; color: var(--text-secondary); margin-bottom: 16px;"></p>
+
+            <div class="feedback-item feedback-good">
+              <div class="feedback-label">✅ 잘한 점</div>
+              <p id="goodText"></p>
+            </div>
+            <div class="feedback-item feedback-improve">
+              <div class="feedback-label">🔧 개선할 점</div>
+              <p id="improveText"></p>
+            </div>
+            <div class="feedback-item feedback-tip">
+              <div class="feedback-label">💡 프로 팁</div>
+              <p id="tipText"></p>
+            </div>
+          </div>
+        </div>
+
+        <div class="btn-group">
+          <button class="btn btn-secondary" onclick="showReport()">📊 종합 리포트</button>
+          <button class="btn btn-primary" onclick="nextRound()">다음 라운드 ➡️</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== SCREEN: REPORT ===== -->
+    <div class="screen" id="screen-report">
+      <div class="report-header">
+        <div class="report-title">📊 종합 리포트</div>
+        <p style="color: var(--text-secondary); margin-top: 8px; font-family: var(--font-cartoon);">당신의 족치기 실력은?</p>
+      </div>
+
+      <div class="card card-glow">
+        <div class="report-stats" id="reportStats"></div>
+        <div id="reportGradeSection" style="text-align: center; margin: 20px 0;"></div>
+      </div>
+
+      <div class="card">
+        <h3 style="font-family: var(--font-cartoon); margin-bottom: 12px; color: var(--accent-yellow);">📝 라운드별 기록</h3>
+        <div class="round-history" id="roundHistory"></div>
+      </div>
+
+      <div class="btn-group">
+        <button class="btn btn-secondary" onclick="goHome()">🏠 메인으로</button>
+        <button class="btn btn-primary" onclick="continueFromReport()">🦶 계속하기</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== API KEY MODAL ===== -->
+  <div class="modal-overlay" id="apiKeyModal">
+    <div class="modal">
+      <h2>🔑 Gemini API 키 설정</h2>
+      <p>
+        Google Gemini AI를 사용합니다. 무료로 사용 가능해요! 🎉<br>
+        <a href="https://aistudio.google.com/apikey" target="_blank" style="color: var(--accent-purple);">👉 Google AI Studio에서 키 발급 (클릭 한 번!)</a>
+      </p>
+      <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: -8px;">
+        1. 위 링크 클릭 → 2. "API 키 만들기" 클릭 → 3. 키 복사해서 붙여넣기
+      </p>
+      <input type="password" id="apiKeyInput" placeholder="AIza... 형태의 키를 입력하세요">
+      <div class="error-text" id="apiKeyError">API 키가 올바르지 않습니다.</div>
+      <div class="btn-group" style="justify-content: flex-end;">
+        <button class="btn btn-secondary btn-small" onclick="closeApiKeyModal()">취소</button>
+        <button class="btn btn-primary btn-small" onclick="saveApiKey()" id="saveKeyBtn">저장</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ==================== STATE ====================
+    const state = {
+      apiKey: localStorage.getItem('junwon_api_key') || '',
+      currentRound: 0,
+      rounds: [], // { scenario, answer, result }
+      kakaoData: null,
+      kakaoExtraSamples: [],
+    };
+
+    // ==================== JUNWON PROFILE ====================
+    const JUNWON = {
+      speechPatterns: {
+        fragmentation: '한 문장을 3~6개의 짧은 메시지로 끊어서 보냄',
+        laughFlood: 'ㅋ를 10~30개씩 연속으로 사용',
+        abbreviations: ['ㅈㄴ', 'ㅅㅂ', 'ㄹㅇ', 'ㅇㅇ', 'ㄴㄴ', 'ㄱㄱ', 'ㅇㅈ'],
+        dialect: ['~노', '~하농', '~이고', '~했노', '~인데', '~거든'],
+        englishMix: ['Cex', 'john sival', '마더 뻐킹', '뻐킹'],
+        signatures: ['개 푸씨', '걸레벌레', '씹덕', '도라이같은련', '택배대가리', '맛도리', '개꿀', '지린다'],
+        exclamations: ['어휴', '아이고', '씨벌', '아오 ㅅㅂ', '개에반데', '존나 웃기네'],
+      },
+      categories: [
+        {
+          id: 'game', name: '게임 분노', emoji: '🎮', color: '#39ff14',
+          badgeClass: 'badge-game',
+          description: '피파(FC온라인)/옵치에서 현질하고, 판정에 화내고, 게임 실력 자랑하는 상황',
+          triggers: ['현질 고민', '선수카드 강화 실패', '상대방 판정 불만', '팀원 못함', '게임 중 급발진', '상대방에게 지고 화냄'],
+          examples: [
+            '아 ㅅㅂ 이게 왜 안들어가!! 판정 개같네 진짜',
+            'ㅋㅋㅋㅋㅋㅋ 야 나 이영표 8카 샀어 1조주고 너네 바지 갈아입을준비해',
+            '씨발럼들 왜이러노 이게 정상이냐 ㅋㅋㅋㅋ',
+            '시그마 나오면 섭딜이 해줘 메타임 알겠어?',
+            '아 존나웃기네 ㅋㅋㅋㅋㅋ 구라치지마 안당해',
+            '옵치 마렵다 마렵다 마렵다',
+            '혼자 겜처하는거 개꼴받네',
+          ]
+        },
+        {
+          id: 'work', name: '직장 불만', emoji: '😤', color: '#ff8c00',
+          badgeClass: 'badge-work',
+          description: '직장에서 후배/동료에 대한 불만, 일 안하고 싶음, 퇴근하고 싶음',
+          triggers: ['후배가 까불때', '일이 없을때', '일이 너무 많을때', '퇴근하고 싶을때', '사원이 판단을 혼자 할때'],
+          examples: [
+            '진짜 사원새끼가 왜케 존나까불지 병신이 판단을 지혼자함',
+            '할일이 없어서 오늘 ㄹㅇ 큰일 하루종일 자도 누가 뭐라 안하겠노',
+            '나는 너무 한가해 그냥 지금 집가고싶오',
+            '아 벌써부터 일없어 피파할래? ㅋㅋㅋㅋㅋ',
+            '오늘 12시간 강의 개에반데',
+            '아오 ㅅㅂ 개피곤하농 진짜',
+          ]
+        },
+        {
+          id: 'cursing', name: '욕설 배틀', emoji: '🤬', color: '#ff2d95',
+          badgeClass: 'badge-cursing',
+          description: '친구한테 시비걸고, 급발진하고, 별명 부르고 욕설 핑퐁',
+          triggers: ['친구가 놀렸을때', '별명 불렸을때', '무시당했을때', '갑자기 급발진', '친구가 안놀아줄때'],
+          examples: [
+         // ==================== INIT ====================
+    async function init() {
+      setupDragDrop();
+      // Test if backend is reachable
+      const statusBtn = document.getElementById('apiKeyStatusBtn');
+      try {
+        statusBtn.textContent = '🟢 서버 연결됨';
+        statusBtn.classList.add('connected');
+        statusBtn.onclick = null; // Disable modal trigger
+        statusBtn.style.cursor = 'default';
+      } catch (e) {
+        statusBtn.textContent = '🔴 서버 오프라인';
+        statusBtn.classList.remove('connected');
+      }
+    }
+
+    // ==================== GAME FLOW ====================
+    function showScreen(id) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById(`screen-${id}`).classList.add('active');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function startGame() {
+      state.currentRound = 0;
+      state.rounds = [];
+      showScreen('play');
+      nextRound();
+    }
+
+    async function nextRound() {
+      state.currentRound++;
+      document.getElementById('roundCounter').textContent = `라운드 ${state.currentRound}`;
+      updateAvgScore();
+
+      // Show loading, hide content and result
+      document.getElementById('scenarioLoading').style.display = 'block';
+      document.getElementById('scenarioContent').style.display = 'none';
+      document.getElementById('phase-result').style.display = 'none';
+      document.getElementById('userAnswer').value = '';
+
+      showScreen('play');
+
+      try {
+        const category = JUNWON.categories[Math.floor(Math.random() * JUNWON.categories.length)];
+
+        const response = await fetch('/api/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            category: category.id,
+            kakaoSamples: state.kakaoExtraSamples
+          })
+        });
+
+        if (!response.ok) {
+          const err = await response.json().catch(() => ({}));
+          throw new Error(err.detail || `HTTP error ${response.status}`);
+        }
+
+        const parsed = await response.json();
+
+        // Display scenario
+        const badge = document.getElementById('scenarioBadge');
+        badge.textContent = `${parsed.categoryEmoji} ${parsed.categoryName}`;
+        badge.className = `badge ${getCategoryBadgeClass(parsed.category)}`;
+
+        document.getElementById('situationText').textContent = parsed.situation;
+
+        const bubble = document.getElementById('dialogueBubble');
+        bubble.innerHTML = parsed.dialogue
+          .map(d => `<div class="dialogue-line">${escapeHtml(d)}</div>`)
+          .join('');
+
+        // Store current scenario
+        state.currentScenario = parsed;
+
+        document.getElementById('scenarioLoading').style.display = 'none';
+        document.getElementById('scenarioContent').style.display = 'block';
+
+      } catch (err) {
+        document.getElementById('scenarioLoading').innerHTML = `
+          <div style="color: var(--accent-red); font-family: var(--font-cartoon);">
+            ❌ 오류: ${escapeHtml(err.message)}<br><br>
+            <button class="btn btn-secondary btn-small" onclick="nextRound()">다시 시도</button>
+          </div>
+        `;
+      }
+    }
+
+    async function submitAnswer() {
+      const answer = document.getElementById('userAnswer').value.trim();
+      if (!answer) {
+        document.getElementById('userAnswer').style.borderColor = 'var(--accent-red)';
+        setTimeout(() => {
+          document.getElementById('userAnswer').style.borderColor = '';
+        }, 1500);
+        return;
+      }
+
+      const btn = document.getElementById('submitBtn');
+      btn.textContent = '평가 중...';
+      btn.disabled = true;
+
+      try {
+        const response = await fetch('/api/evaluate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            scenario: state.currentScenario,
+            userAnswer: answer
+          })
+        });
+
+        if (!response.ok) {
+          const err = await response.json().catch(() => ({}));
+          throw new Error(err.detail || `HTTP error ${response.status}`);
+        }
+
+        const evaluation = await response.json();
+
+        // Save round
+        state.rounds.push({
+          scenario: state.currentScenario,
+          answer,
+          result: evaluation,
+        });
+
+        // Display result
+        displayResult(evaluation);
+
+      } catch (err) {
+        alert(`평가 오류: ${err.message}`);
+      } finally {
+        btn.textContent = '🦶 족치기!';
+        btn.disabled = false;
+      }
+    }
+
+    function displayResult(evaluation) {
+      document.getElementById('scenarioContent').style.display = 'none';
+      document.getElementById('phase-result').style.display = 'block';
+
+      const score = Math.min(100, Math.max(0, evaluation.score));
+      const grade = evaluation.grade || 'C';
+
+      // Score number with color
+      const scoreEl = document.getElementById('scoreDisplay');
+      scoreEl.textContent = score;
+      if (score >= 90) scoreEl.style.color = '#ffd700';
+      else if (score >= 80) scoreEl.style.color = 'var(--accent-green)';
+      else if (score >= 70) scoreEl.style.color = 'var(--accent-blue)';
+      else if (score >= 60) scoreEl.style.color = 'var(--accent-orange)';
+      else scoreEl.style.color = 'var(--accent-red)';
+
+      // Score gauge
+      const gauge = document.getElementById('scoreGauge');
+      let gaugeColor;
+      if (score >= 80) gaugeColor = 'linear-gradient(90deg, var(--accent-green), #ffd700)';
+      else if (score >= 60) gaugeColor = 'linear-gradient(90deg, var(--accent-orange), var(--accent-yellow))';
+      else gaugeColor = 'linear-gradient(90deg, var(--accent-red), var(--accent-orange))';
+      gauge.style.background = gaugeColor;
+      setTimeout(() => { gauge.style.width = `${score}%`; }, 100);
+
+      // Grade badge
+      document.getElementById('gradeDisplay').innerHTML =
+        `<div class="grade-badge grade-${grade}">${grade}</div>`;
+
+      // Title
+      document.getElementById('titleDisplay').textContent = `🏷️ ${evaluation.title || '족치기 수련생'}`;
+
+      // Feedback
+      document.getElementById('feedbackText').textContent = evaluation.feedback || '';
+      document.getElementById('goodText').textContent = evaluation.good || '';
+      document.getElementById('improveText').textContent = evaluation.improve || '';
+      document.getElementById('tipText').textContent = evaluation.tip || '';
+
+      updateAvgScore();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function skipScenario() {
+      nextRound();
+    }
+
+    function updateAvgScore() {
+      const display = document.getElementById('avgScoreDisplay');
+      if (state.rounds.length === 0) {
+        display.textContent = '평균: --점';
+        return;
+      }
+      const avg = Math.round(
+        state.rounds.reduce((sum, r) => sum + (r.result?.score || 0), 0) / state.rounds.length
+      );
+      display.textContent = `평균: ${avg}점`;
+    }
+
+    // ==================== REPORT ====================
+    function showReport() {
+      if (state.rounds.length === 0) return;
+      showScreen('report');
+
+      const scores = state.rounds.map(r => r.result?.score || 0);
+      const avg = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
+      const max = Math.max(...scores);
+      const min = Math.min(...scores);
+
+      // Overall grade
+      let overallGrade;
+      if (avg >= 90) overallGrade = 'S';
+      else if (avg >= 80) overallGrade = 'A';
+      else if (avg >= 70) overallGrade = 'B';
+      else if (avg >= 60) overallGrade = 'C';
+      else if (avg >= 50) overallGrade = 'D';
+      else overallGrade = 'F';
+
+      document.getElementById('reportStats').innerHTML = `
+        <div class="stat-box">
+          <div class="stat-value">${state.rounds.length}</div>
+          <div class="stat-label">총 라운드</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-value">${avg}</div>
+          <div class="stat-label">평균 점수</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-value">${max}</div>
+          <div class="stat-label">최고 점수</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-value">${min}</div>
+          <div class="stat-label">최저 점수</div>
+        </div>
+      `;
+
+      document.getElementById('reportGradeSection').innerHTML = `
+        <div class="grade-badge grade-${overallGrade}" style="font-size: 4rem; width: 100px; height: 100px; line-height: 100px;">${overallGrade}</div>
+        <div class="title-badge" style="margin-top: 12px;">종합 등급</div>
+      `;
+
+      const historyDiv = document.getElementById('roundHistory');
+      historyDiv.innerHTML = state.rounds.map((r, i) => `
+        <div class="round-history-item">
+          <div>
+            <span style="color: var(--text-muted); font-size: 0.85rem;">R${i + 1}</span>
+            <span class="badge ${getCategoryBadgeClass(r.scenario.category)}" style="font-size: 0.75rem; padding: 3px 8px; margin-left: 6px;">
+              ${r.scenario.categoryEmoji} ${r.scenario.categoryName}
+            </span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-family: var(--font-cartoon); font-size: 1.1rem;">${r.result?.score || 0}점</span>
+            <span class="grade-badge grade-${r.result?.grade || 'F'}" style="font-size: 0.9rem; width: 32px; height: 32px; line-height: 32px; margin: 0;">${r.result?.grade || 'F'}</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function getCategoryBadgeClass(categoryId) {
+      const map = { game: 'badge-game', work: 'badge-work', cursing: 'badge-cursing', whining: 'badge-whining' };
+      return map[categoryId] || 'badge-game';
+    }
+
+    function continueFromReport() {
+      showScreen('play');
+      nextRound();
+    }
+
+    function goHome() {
+      showScreen('main');
+    }
+
+    // ==================== UTILS ====================
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    // ==================== START ====================
+    init();
+  </script>
+</body>
+</html>

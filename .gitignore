@@ -1,0 +1,8 @@
+.env
+__pycache__/
+*.pyc
+.DS_Store
+.agents
+task.md
+walkthrough.md
+implementation_plan.md
