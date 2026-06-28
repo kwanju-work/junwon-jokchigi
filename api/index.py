@@ -1,6 +1,7 @@
 import os
 import random
 import json
+import asyncio
 from typing import Optional, List
 from fastapi import FastAPI, HTTPException, Body
 from fastapi.responses import HTMLResponse, FileResponse
@@ -165,21 +166,28 @@ async def call_gemini(system_prompt: str, user_message: str, response_mime_type:
         }
     }
     
-    async with httpx.AsyncClient(timeout=30.0) as client:
-        response = await client.post(url, json=payload)
-        if response.status_code != 200:
+    max_retries = 3
+    for attempt in range(max_retries):
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.post(url, json=payload)
+            if response.status_code == 200:
+                data = response.json()
+                try:
+                    return data["candidates"][0]["content"]["parts"][0]["text"]
+                except (KeyError, IndexError):
+                    raise HTTPException(status_code=502, detail="Invalid response structure from Gemini API")
+            
+            # Retry on temporary errors (429 Rate Limit, 503 Service Unavailable)
+            if response.status_code in [429, 503] and attempt < max_retries - 1:
+                await asyncio.sleep(1.5 * (attempt + 1))
+                continue
+                
             try:
                 err_data = response.json()
                 msg = err_data.get("error", {}).get("message", "Unknown Gemini API error")
             except:
                 msg = response.text
             raise HTTPException(status_code=502, detail=f"Gemini API Error: {msg}")
-        
-        data = response.json()
-        try:
-            return data["candidates"][0]["content"]["parts"][0]["text"]
-        except (KeyError, IndexError):
-            raise HTTPException(status_code=502, detail="Invalid response structure from Gemini API")
 
 @app.post("/api/generate")
 async def generate_scenario(body: dict = Body(...)):
