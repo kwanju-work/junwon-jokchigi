@@ -1001,9 +1001,10 @@
           <div class="round-history" id="roundHistory"></div>
         </div>
 
-        <div class="btn-group">
-          <button class="btn btn-secondary" onclick="goHome()">🏠 메인으로</button>
-          <button class="btn btn-primary" onclick="continueFromReport()">🦶 계속하기</button>
+        <div class="btn-group" style="flex-wrap: wrap;">
+          <button class="btn btn-secondary" onclick="goHome()" style="flex: 1; min-width: 120px;">🏠 메인으로</button>
+          <button class="btn btn-secondary" onclick="shareResults()" style="flex: 1; min-width: 120px; background: #fee500; color: #191919; border-color: #fee500; font-weight: bold;">💛 카톡 공유</button>
+          <button class="btn btn-primary" onclick="continueFromReport()" style="flex: 1; min-width: 120px;">🦶 계속하기</button>
         </div>
       </div>
 
@@ -1560,6 +1561,56 @@
       document.getElementById('reportLoading').style.display = 'none';
       document.getElementById('reportContent').style.display = 'block';
       window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function shareResults() {
+      const scores = state.rounds.map(r => r.result?.score || 0);
+      const avg = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
+      
+      let overallGrade;
+      if (avg >= 90) overallGrade = 'S';
+      else if (avg >= 80) overallGrade = 'A';
+      else if (avg >= 70) overallGrade = 'B';
+      else if (avg >= 60) overallGrade = 'C';
+      else if (avg >= 50) overallGrade = 'D';
+      else overallGrade = 'F';
+
+      const title = state.rounds[state.rounds.length - 1]?.result?.title || '족치기 수련생';
+      const shareUrl = window.location.origin;
+      
+      const shareText = `🦶 [준원이 족치기] 최종 결과 리포트 🦶\n\n` +
+                        `참교육자: ${state.playerName}\n` +
+                        `종합 등급: ${overallGrade}랭크\n` +
+                        `평균 점수: ${avg}점\n` +
+                        `최종 칭호: ${title}\n\n` +
+                        `👇 지금 당신도 징징대는 준원이를 참교육해 보세요!\n` +
+                        `${shareUrl}`;
+
+      if (navigator.share) {
+        navigator.share({
+          title: '준원이 족치기 결과 리포트',
+          text: shareText,
+          url: shareUrl,
+        }).catch(() => {
+          copyToClipboard(shareText);
+        });
+      } else {
+        copyToClipboard(shareText);
+      }
+    }
+
+    function copyToClipboard(text) {
+      navigator.clipboard.writeText(text).then(() => {
+        alert("📋 결과가 클립보드에 복사되었습니다!\n카카오톡 단톡방에 붙여넣어(Ctrl+V) 결과를 자랑해 보세요!");
+      }).catch(() => {
+        const textarea = document.createElement("textarea");
+        textarea.value = text;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textarea);
+        alert("📋 결과가 클립보드에 복사되었습니다!\n카카오톡 단톡방에 붙여넣어(Ctrl+V) 결과를 자랑해 보세요!");
+      });
     }
 
     function getCategoryBadgeClass(categoryId) {
