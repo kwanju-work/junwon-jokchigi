@@ -142,7 +142,7 @@ CATEGORIES = [
     }
 ]
 
-async def call_gemini(system_prompt: str, user_message: str) -> str:
+async def call_gemini(system_prompt: str, user_message: str, response_mime_type: str = "text/plain") -> str:
     if not GEMINI_API_KEY:
         raise HTTPException(
             status_code=500,
@@ -161,7 +161,7 @@ async def call_gemini(system_prompt: str, user_message: str) -> str:
         "generationConfig": {
             "temperature": 1.0,
             "maxOutputTokens": 1024,
-            "responseMimeType": "text/plain",
+            "responseMimeType": response_mime_type,
         }
     }
     
@@ -218,7 +218,7 @@ async def generate_scenario(body: dict = Body(...)):
   "dialogue": ["준원이의 대사1", "대사2", "대사3"] (3-6개의 메시지, 끊어치기 스타일로)
 }}"""
 
-    result_text = await call_gemini(JUNWON_PROFILE["systemPrompt"], user_prompt)
+    result_text = await call_gemini(JUNWON_PROFILE["systemPrompt"], user_prompt, response_mime_type="application/json")
     
     # Parse JSON from Gemini response
     try:
@@ -261,7 +261,7 @@ async def evaluate_answer(body: dict = Body(...)):
 
 위 기준에 따라 사용자의 대응을 평가해줘. JSON으로만 응답해."""
 
-    result_text = await call_gemini(JUNWON_PROFILE["evaluationPrompt"], user_prompt)
+    result_text = await call_gemini(JUNWON_PROFILE["evaluationPrompt"], user_prompt, response_mime_type="application/json")
     
     try:
         parsed = json.loads(result_text)
