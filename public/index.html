@@ -1098,6 +1098,7 @@
       const textarea = document.getElementById('userAnswer');
       if (textarea) {
         textarea.addEventListener('keydown', function(e) {
+          if (e.isComposing) return; // Ignore Korean IME composition Enter
           if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
             const val = textarea.value.trim();
