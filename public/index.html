@@ -973,6 +973,14 @@
         <div id="reportGradeSection" style="text-align: center; margin: 20px 0;"></div>
       </div>
 
+      <!-- AI Solution Card -->
+      <div class="card card-glow" id="reportSolutionCard" style="display: none; margin-top: 20px;">
+        <h3 style="font-family: var(--font-cartoon); margin-bottom: 12px; color: var(--accent-yellow);">💡 맞춤형 참교육 솔루션</h3>
+        <div id="reportSolutionText" style="line-height: 1.8; font-size: 0.95rem;">
+          데이터 분석 중...
+        </div>
+      </div>
+
       <div class="card">
         <h3 style="font-family: var(--font-cartoon); margin-bottom: 12px; color: var(--accent-yellow);">📝 라운드별 기록</h3>
         <div class="round-history" id="roundHistory"></div>
@@ -1427,7 +1435,7 @@
     }
 
     // ==================== REPORT ====================
-    function showReport() {
+    async function showReport() {
       if (state.rounds.length === 0) return;
       showScreen('report');
 
@@ -1484,6 +1492,51 @@
           </div>
         </div>
       `).join('');
+
+      // Load AI Overall Solution
+      const solutionCard = document.getElementById('reportSolutionCard');
+      const solutionText = document.getElementById('reportSolutionText');
+      if (solutionCard && solutionText) {
+        solutionCard.style.display = 'block';
+        solutionText.innerHTML = `<div style="text-align: center; color: var(--text-muted); padding: 12px; font-family: var(--font-cartoon);">
+          🤖 AI가 당신의 5라운드 참교육 데이터를 분석하고 맞춤형 길들이기 솔루션을 도출하고 있습니다...
+        </div>`;
+
+        try {
+          const response = await fetch('/api/report-solution', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              rounds: state.rounds,
+              playerName: state.playerName
+            })
+          });
+
+          if (!response.ok) {
+            throw new Error(`HTTP error ${response.status}`);
+          }
+
+          const sol = await response.json();
+          solutionText.innerHTML = `
+            <div style="margin-bottom: 12px; background: rgba(124, 58, 237, 0.05); padding: 12px; border-radius: 8px; border-left: 4px solid var(--accent-purple);">
+              <strong style="color: var(--accent-purple); font-size: 1rem; display: block; margin-bottom: 4px; font-family: var(--font-cartoon);">🎯 나의 참교육 성향</strong>
+              <span style="color: var(--text-secondary);">${escapeHtml(sol.style)}</span>
+            </div>
+            <div style="margin-bottom: 12px; background: rgba(239, 68, 68, 0.05); padding: 12px; border-radius: 8px; border-left: 4px solid var(--accent-red);">
+              <strong style="color: var(--accent-red); font-size: 1rem; display: block; margin-bottom: 4px; font-family: var(--font-cartoon);">🔍 발견된 약점</strong>
+              <span style="color: var(--text-secondary);">${escapeHtml(sol.weakness)}</span>
+            </div>
+            <div style="background: rgba(16, 185, 129, 0.05); padding: 12px; border-radius: 8px; border-left: 4px solid var(--accent-green);">
+              <strong style="color: var(--accent-green); font-size: 1rem; display: block; margin-bottom: 4px; font-family: var(--font-cartoon);">🛠️ 100% 준원이 길들이기 솔루션</strong>
+              <span style="color: var(--text-secondary);">${escapeHtml(sol.solution)}</span>
+            </div>
+          `;
+        } catch (err) {
+          solutionText.innerHTML = `<div style="color: var(--accent-red); text-align: center; padding: 12px;">
+            ❌ 맞춤형 솔루션을 가져오는데 실패했습니다: ${escapeHtml(err.message)}
+          </div>`;
+        }
+      }
     }
 
     function getCategoryBadgeClass(categoryId) {

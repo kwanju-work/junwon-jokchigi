@@ -294,6 +294,68 @@ async def evaluate_answer(body: dict = Body(...)):
             
     return parsed
 
+@app.post("/api/report-solution")
+async def generate_report_solution(body: dict = Body(...)):
+    rounds = body.get("rounds", [])
+    player_name = body.get("playerName", "친구")
+    
+    if not rounds:
+        raise HTTPException(status_code=400, detail="No rounds provided for report solution")
+        
+    # Format the round history for the prompt
+    history_str = ""
+    for idx, r in enumerate(rounds):
+        scenario = r.get("scenario", {})
+        situation = scenario.get("situation", "")
+        dialogue = " / ".join(scenario.get("dialogue", []))
+        answer = r.get("answer", "")
+        score = r.get("result", {}).get("score", 0)
+        grade = r.get("result", {}).get("grade", "F")
+        
+        history_str += f"""
+[라운드 {idx+1}]
+- 상황: {situation}
+- 준원이의 대사: {dialogue}
+- {player_name}의 참교육 대응: "{answer}" (획득 점수: {score}점, 등급: {grade})
+"""
+
+    system_prompt = f"""너는 '준원이 족치기' 게임의 전문 참교육 마스터이자 심리 상담사 AI야.
+사용자({player_name})가 5라운드 동안 준원이를 참교육하며 누적한 대화 내역과 점수를 보고, 사용자 {player_name}의 훈육 성향을 프로파일링하고 개선 솔루션을 제시해야 해.
+
+재미있고 날카로우며 현실적인 어조로 다음 3가지 항목을 분석해줘:
+1. 참교육 성향 분석 (예: 팩폭형, 감정호소형, 무력진압형 등 위트 있는 이름 부여)
+2. 준원이를 대할 때 발견된 약점 및 보완점
+3. 앞으로 준원이를 확실히 굴복시키고 눈물 흘리게 만들기 위한 핵심 솔루션 가이드
+
+반드시 아래 JSON 형식으로만 응답해. JSON 외의 다른 텍스트는 절대 포함하지 마:
+{{
+  "style": "사용자의 참교육 성향 분석 (2-3문장)",
+  "weakness": "준원이를 대할 때의 약점 (2-3문장)",
+  "solution": "앞으로의 100% 참교육 솔루션 가이드 (3-4문장)"
+}}"""
+
+    user_prompt = f"""여기에 사용자 {player_name}의 5라운드 플레이 기록이 있어:
+{history_str}
+
+이 기록을 기반으로 참교육 성향 분석, 약점 분석, 최종 길들이기 솔루션을 제공해줘."""
+
+    result_text = await call_gemini(system_prompt, user_prompt, response_mime_type="application/json")
+    
+    try:
+        parsed = json.loads(result_text)
+    except:
+        import re
+        json_match = re.search(r'\{[\s\S]*\}', result_text)
+        if json_match:
+            try:
+                parsed = json.loads(json_match.group(0))
+            except:
+                raise HTTPException(status_code=502, detail="Failed to parse solution JSON")
+        else:
+            raise HTTPException(status_code=502, detail="AI did not return valid JSON")
+            
+    return parsed
+
 # Serve static frontend files
 @app.get("/")
 async def serve_home():
