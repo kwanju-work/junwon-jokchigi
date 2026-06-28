@@ -850,11 +850,14 @@
       <!-- Kakao Upload Section -->
       <div class="card" style="margin-top: 20px;">
         <h3 style="font-family: var(--font-cartoon); font-size: 1.1rem; margin-bottom: 12px; color: var(--text-secondary);">
-          📂 카카오톡 대화 업로드 (선택)
+          📂 실제 준원이 카톡 대화 업로드 (선택사항)
         </h3>
-        <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 12px;">
-          준원이와의 카톡 대화를 업로드하면 더 리얼한 시나리오가 생성됩니다!<br>
-          카톡 → 채팅방 → 메뉴(≡) → 대화 내보내기 → .txt 파일
+        <div style="background: rgba(124, 58, 237, 0.05); border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; margin-bottom: 12px; font-size: 0.85rem; line-height: 1.5; color: var(--text-secondary);">
+          💡 <b>이게 무엇인가요?</b><br>
+          준원이와 실제 나눈 카카오톡 대화 내보내기(.txt) 파일을 여기에 넣으시면, AI가 <b>준원이의 실제 말투(자주 쓰는 비속어, 독특한 어조, 타자 습관 등)를 동적으로 반영</b>하여 훨씬 더 사실적이고 재미있는 맞춤형 시나리오를 자동 생성해 줍니다! (파일은 브라우저 로컬에서만 임시 분석되며 개인정보는 유출되지 않습니다.)
+        </div>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;">
+          📌 <b>추출 방법</b>: 카카오톡 앱 → 준원이와 대화방 → 우측 상단 메뉴(≡) → 설정(톱니바퀴) → '대화 내보내기' → 텍스트 파일 저장
         </p>
         <div class="file-drop-zone" id="fileDropZone" onclick="document.getElementById('kakaoFileInput').click()">
           <div class="drop-icon">📄</div>
