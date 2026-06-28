@@ -1130,82 +1130,109 @@
 
       // Show loading, hide content and result
       document.getElementById('scenarioLoading').style.display = 'block';
+      document.getElementById('scenarioLoading').innerHTML = `
+        <div class="loading-foot">🦶</div>
+        <div class="loading-text" id="loadingText">준원이가 상황 파악 중...</div>
+      `;
       document.getElementById('scenarioContent').style.display = 'none';
       document.getElementById('phase-result').style.display = 'none';
       document.getElementById('userAnswer').value = '';
 
       showScreen('play');
 
-      try {
-        let category;
-        const maxAttempts = 10;
-        let attempts = 0;
-        
-        // Pick category based on weights (Game has 15% chance, others have 28.3% each)
-        const weights = { game: 0.15, work: 0.283, cursing: 0.283, whining: 0.284 };
-        
-        function getWeightedCategory() {
-          const r = Math.random();
-          let sum = 0;
-          for (const cat of JUNWON.categories) {
-            const w = weights[cat.id] || 0.25;
-            sum += w;
-            if (r <= sum) return cat;
+      let maxAttempts = 6;
+      let attempt = 0;
+      let delay = 3000;
+
+      while (attempt < maxAttempts) {
+        if (attempt > 0) {
+          document.getElementById('loadingText').innerHTML = `서버 지연 대기 중... (${Math.round(delay/1000)}초 후 재시도 ${attempt}/${maxAttempts-1})`;
+          await new Promise(resolve => setTimeout(resolve, delay));
+          delay += 2500; // Increase backoff delay
+        }
+
+        try {
+          let category;
+          const maxAttemptsCat = 10;
+          let attemptsCat = 0;
+          
+          // Pick category based on weights (Game has 15% chance, others have 28.3% each)
+          const weights = { game: 0.15, work: 0.283, cursing: 0.283, whining: 0.284 };
+          
+          function getWeightedCategory() {
+            const r = Math.random();
+            let sum = 0;
+            for (const cat of JUNWON.categories) {
+              const w = weights[cat.id] || 0.25;
+              sum += w;
+              if (r <= sum) return cat;
+            }
+            return JUNWON.categories[JUNWON.categories.length - 1];
           }
-          return JUNWON.categories[JUNWON.categories.length - 1];
+
+          do {
+            category = getWeightedCategory();
+            attemptsCat++;
+          } while (
+            state.currentScenario && 
+            category.id === state.currentScenario.category && 
+            attemptsCat < maxAttemptsCat
+          );
+
+          const response = await fetch('/api/generate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              category: category.id,
+              kakaoSamples: state.kakaoExtraSamples,
+              playerName: state.playerName
+            })
+          });
+
+          // If rate limit (429) or temporary server errors, retry
+          if ((response.status === 429 || response.status === 503 || response.status === 502) && attempt < maxAttempts - 1) {
+            attempt++;
+            continue;
+          }
+
+          if (!response.ok) {
+            const err = await response.json().catch(() => ({}));
+            throw new Error(err.detail || `HTTP error ${response.status}`);
+          }
+
+          const parsed = await response.json();
+
+          // Display scenario
+          const badge = document.getElementById('scenarioBadge');
+          badge.textContent = `${parsed.categoryEmoji} ${parsed.categoryName}`;
+          badge.className = `badge ${getCategoryBadgeClass(parsed.category)}`;
+
+          document.getElementById('situationText').textContent = parsed.situation;
+
+          const bubble = document.getElementById('dialogueBubble');
+          bubble.innerHTML = parsed.dialogue
+            .map(d => `<div class="dialogue-line">${escapeHtml(d)}</div>`)
+            .join('');
+
+          // Store current scenario
+          state.currentScenario = parsed;
+
+          document.getElementById('scenarioLoading').style.display = 'none';
+          document.getElementById('scenarioContent').style.display = 'block';
+          break; // Success!
+
+        } catch (err) {
+          if (attempt >= maxAttempts - 1) {
+            document.getElementById('scenarioLoading').innerHTML = `
+              <div style="color: var(--accent-red); font-family: var(--font-cartoon);">
+                ❌ 오류: ${escapeHtml(err.message)}<br><br>
+                <button class="btn btn-secondary btn-small" onclick="nextRound(true)">다시 시도</button>
+              </div>
+            `;
+            break;
+          }
+          attempt++;
         }
-
-        do {
-          category = getWeightedCategory();
-          attempts++;
-        } while (
-          state.currentScenario && 
-          category.id === state.currentScenario.category && 
-          attempts < maxAttempts
-        );
-
-        const response = await fetch('/api/generate', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            category: category.id,
-            kakaoSamples: state.kakaoExtraSamples,
-            playerName: state.playerName
-          })
-        });
-
-        if (!response.ok) {
-          const err = await response.json().catch(() => ({}));
-          throw new Error(err.detail || `HTTP error ${response.status}`);
-        }
-
-        const parsed = await response.json();
-
-        // Display scenario
-        const badge = document.getElementById('scenarioBadge');
-        badge.textContent = `${parsed.categoryEmoji} ${parsed.categoryName}`;
-        badge.className = `badge ${getCategoryBadgeClass(parsed.category)}`;
-
-        document.getElementById('situationText').textContent = parsed.situation;
-
-        const bubble = document.getElementById('dialogueBubble');
-        bubble.innerHTML = parsed.dialogue
-          .map(d => `<div class="dialogue-line">${escapeHtml(d)}</div>`)
-          .join('');
-
-        // Store current scenario
-        state.currentScenario = parsed;
-
-        document.getElementById('scenarioLoading').style.display = 'none';
-        document.getElementById('scenarioContent').style.display = 'block';
-
-      } catch (err) {
-        document.getElementById('scenarioLoading').innerHTML = `
-          <div style="color: var(--accent-red); font-family: var(--font-cartoon);">
-            ❌ 오류: ${escapeHtml(err.message)}<br><br>
-            <button class="btn btn-secondary btn-small" onclick="nextRound(true)">다시 시도</button>
-          </div>
-        `;
       }
     }
 
@@ -1220,43 +1247,67 @@
       }
 
       const btn = document.getElementById('submitBtn');
-      btn.textContent = '평가 중...';
       btn.disabled = true;
 
-      try {
-        const response = await fetch('/api/evaluate', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            scenario: state.currentScenario,
-            userAnswer: answer,
-            playerName: state.playerName
-          })
-        });
+      let maxAttempts = 6;
+      let attempt = 0;
+      let delay = 3000;
 
-        if (!response.ok) {
-          const err = await response.json().catch(() => ({}));
-          throw new Error(err.detail || `HTTP error ${response.status}`);
+      while (attempt < maxAttempts) {
+        if (attempt > 0) {
+          btn.textContent = `지연 대기 중... (${Math.round(delay/1000)}초 후 재시도)`;
+          await new Promise(resolve => setTimeout(resolve, delay));
+          delay += 2500;
         }
+        
+        btn.textContent = attempt > 0 ? `재시도 중... (${attempt}/${maxAttempts-1})` : '평가 중...';
 
-        const evaluation = await response.json();
+        try {
+          const response = await fetch('/api/evaluate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              scenario: state.currentScenario,
+              userAnswer: answer,
+              playerName: state.playerName
+            })
+          });
 
-        // Save round
-        state.rounds.push({
-          scenario: state.currentScenario,
-          answer,
-          result: evaluation,
-        });
+          // If rate limit (429) or temporary server errors, retry
+          if ((response.status === 429 || response.status === 503 || response.status === 502) && attempt < maxAttempts - 1) {
+            attempt++;
+            continue;
+          }
 
-        // Display result
-        displayResult(evaluation);
+          if (!response.ok) {
+            const err = await response.json().catch(() => ({}));
+            throw new Error(err.detail || `HTTP error ${response.status}`);
+          }
 
-      } catch (err) {
-        alert(`평가 오류: ${err.message}`);
-      } finally {
-        btn.textContent = '🦶 족치기!';
-        btn.disabled = false;
+          const evaluation = await response.json();
+
+          // Save round
+          state.rounds.push({
+            scenario: state.currentScenario,
+            answer,
+            result: evaluation,
+          });
+
+          // Display result
+          displayResult(evaluation);
+          break; // Success!
+
+        } catch (err) {
+          if (attempt >= maxAttempts - 1) {
+            alert(`평가 오류: ${err.message}`);
+            break;
+          }
+          attempt++;
+        }
       }
+
+      btn.textContent = '🦶 족치기!';
+      btn.disabled = false;
     }
 
     function displayResult(evaluation) {

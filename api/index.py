@@ -188,7 +188,7 @@ async def call_gemini(system_prompt: str, user_message: str, response_mime_type:
                 msg = err_data.get("error", {}).get("message", "Unknown Gemini API error")
             except:
                 msg = response.text
-            raise HTTPException(status_code=502, detail=f"Gemini API Error: {msg}")
+            raise HTTPException(status_code=response.status_code, detail=f"Gemini API Error: {msg}")
 
 @app.post("/api/generate")
 async def generate_scenario(body: dict = Body(...)):
